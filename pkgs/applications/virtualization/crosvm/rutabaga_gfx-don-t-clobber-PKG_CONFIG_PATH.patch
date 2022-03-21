@@ -1,0 +1,33 @@
+From 5415aa75266099ab9f0e396fb2eaf24db14303ec Mon Sep 17 00:00:00 2001
+From: Alyssa Ross <hi@alyssa.is>
+Date: Mon, 21 Mar 2022 13:39:04 +0000
+Subject: [PATCH] rutabaga_gfx: don't clobber PKG_CONFIG_PATH
+
+The OS or user might have other important paths in here for dependencies.
+---
+ rutabaga_gfx/build.rs | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/rutabaga_gfx/build.rs b/rutabaga_gfx/build.rs
+index 198d8ea4..eb109a29 100644
+--- a/rutabaga_gfx/build.rs
++++ b/rutabaga_gfx/build.rs
+@@ -103,8 +103,14 @@ fn build_virglrenderer(out_dir: &Path) -> Result<()> {
+     }
+ 
+     let minigbm_src_abs = PathBuf::from(MINIGBM_SRC).canonicalize()?;
++    let mut pkg_config_path = minigbm_src_abs.clone().into_os_string();
++    if let Some(prev) = env::var_os("PKG_CONFIG_PATH") {
++        pkg_config_path.push(":");
++        pkg_config_path.push(prev);
++    }
++
+     let status = Command::new("meson")
+-        .env("PKG_CONFIG_PATH", &minigbm_src_abs)
++        .env("PKG_CONFIG_PATH", &pkg_config_path)
+         .arg("setup")
+         .arg("-Ddefault_library=static")
+         .args(get_meson_cross_args())
+-- 
+2.35.1
+

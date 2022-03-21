@@ -1,5 +1,6 @@
-{ stdenv, lib, rustPlatform, fetchgit
-, pkg-config, wayland-scanner, libcap, minijail, wayland, wayland-protocols
+{ stdenv, lib, rust, rustPlatform, fetchgit
+, meson, ninja, pkg-config, python3, wayland-scanner
+, libcap, libdrm, libepoxy, libglvnd, minijail, wayland, wayland-protocols, xorg
 , linux
 }:
 
@@ -12,6 +13,13 @@ let
     else if isx86_64 then "x86_64"
     else throw "no seccomp policy files available for host platform";
 
+  rustTarget = rust.toRustTarget stdenv.hostPlatform;
+  rustArch = lib.head (builtins.match "([^-]*).*" rustTarget);
+
+  defaultMesonFlags = (stdenv.mkDerivation { name = "meson-cross-hack"; mesonFlags = []; }).mesonFlags;
+  mesonCrossFile = with builtins;
+    head (head (map (match "--cross-file=(.*)") defaultMesonFlags ++ [ [ null ] ]));
+
 in
 
   rustPlatform.buildRustPackage rec {
@@ -22,23 +30,42 @@ in
 
     patches = [
       ./default-seccomp-policy-dir.diff
+      ./rutabaga_gfx-don-t-clobber-PKG_CONFIG_PATH.patch
     ];
 
     cargoLock.lockFile = ./Cargo.lock;
 
-    nativeBuildInputs = [ pkg-config wayland-scanner ];
+    nativeBuildInputs = [ meson ninja pkg-config python3 wayland-scanner ];
 
-    buildInputs = [ libcap minijail wayland wayland-protocols ];
+    buildInputs = [
+      libcap libdrm libepoxy libglvnd minijail wayland wayland-protocols
+      xorg.libX11
+    ];
 
     postPatch = ''
       cp ${./Cargo.lock} Cargo.lock
       sed -i "s|/usr/share/policy/crosvm/|$out/share/policy/|g" \
              seccomp/*/*.policy
+      substituteInPlace third_party/minigbm/common.mk --replace /bin/ ""
+      sed -i '/fn main() {/a println!("cargo:rustc-link-lib=X11");' gpu_display/build.rs
+
+      # rutabaga_gfx/build.rs tests for the existence of this.
+      touch third_party/{minigbm,virglrenderer}/.git
     '';
 
     preBuild = ''
       export DEFAULT_SECCOMP_POLICY_DIR=$out/share/policy
+    '' + lib.optionalString (mesonCrossFile != null) ''
+      dataDir="$(mktemp -d)"
+      mkdir -p "$dataDir/meson/cross"
+      ln -s ${mesonCrossFile} "$dataDir/meson/cross/${rustArch}"
+      export XDG_DATA_DIRS="$dataDir"
     '';
+
+    dontUseNinjaBuild = true;
+    dontUseNinjaInstall = true;
+
+    buildFeatures = [ "default" "virgl_renderer" "virgl_renderer_next" ];
 
     postInstall = ''
       mkdir -p $out/share/policy/
