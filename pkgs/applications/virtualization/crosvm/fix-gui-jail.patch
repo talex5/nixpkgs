@@ -1,0 +1,13 @@
+diff --git a/src/linux.rs b/src/linux.rs
+index ad031749..7ba0df62 100644
+--- a/src/linux.rs
++++ b/src/linux.rs
+@@ -790,6 +790,8 @@ fn gpu_jail(cfg: &Config, policy: &str) -> Result<Option<Minijail>> {
+             jail_mount_bind_if_exists(
+                 &mut jail,
+                 &[
++                    "/run/opengl-driver",
++                    "/nix/store",
+                     "/usr/lib",
+                     "/usr/lib64",
+                     "/lib",

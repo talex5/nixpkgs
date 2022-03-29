@@ -31,6 +31,7 @@ in
     patches = [
       ./default-seccomp-policy-dir.diff
       ./rutabaga_gfx-don-t-clobber-PKG_CONFIG_PATH.patch
+      ./fix-gui-jail.patch
     ];
 
     cargoLock.lockFile = ./Cargo.lock;
