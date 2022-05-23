@@ -1,0 +1,13 @@
+diff --git a/devices/src/virtio/gpu/mod.rs b/devices/src/virtio/gpu/mod.rs
+index fe2bedf8..a13fa2e3 100644
+--- a/devices/src/virtio/gpu/mod.rs
++++ b/devices/src/virtio/gpu/mod.rs
+@@ -108,7 +108,7 @@ pub struct GpuParameters {
+ // First queue is for virtio gpu commands. Second queue is for cursor commands, which we expect
+ // there to be fewer of.
+ pub const QUEUE_SIZES: &[u16] = &[256, 16];
+-pub const FENCE_POLL_INTERVAL: Duration = Duration::from_millis(1);
++pub const FENCE_POLL_INTERVAL: Duration = Duration::from_millis(1000);
+ 
+ pub const GPU_BAR_NUM: u8 = 4;
+ pub const GPU_BAR_OFFSET: u64 = 0;
