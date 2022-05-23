@@ -1,7 +1,7 @@
 { stdenv, lib, rust, rustPlatform, fetchgit
 , meson, ninja, pkg-config, python3, wayland-scanner
 , libcap, libdrm, libepoxy, libglvnd, minijail, wayland, wayland-protocols, xorg
-, linux
+, linux, mesa
 }:
 
 let
@@ -41,7 +41,7 @@ in
 
     buildInputs = [
       libcap libdrm libepoxy libglvnd minijail wayland wayland-protocols
-      xorg.libX11
+      xorg.libX11 mesa
     ];
 
     postPatch = ''
