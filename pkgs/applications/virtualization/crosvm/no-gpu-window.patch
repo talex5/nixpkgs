@@ -1,0 +1,28 @@
+diff --git a/src/linux.rs b/src/linux.rs
+index 7ba0df62..eb058382 100644
+--- a/src/linux.rs
++++ b/src/linux.rs
+@@ -836,7 +836,7 @@ fn create_gpu_device(
+     map_request: Arc<Mutex<Option<ExternalMapping>>>,
+ ) -> DeviceResult {
+     let mut display_backends = vec![
+-        virtio::DisplayBackend::X(x_display),
++        // virtio::DisplayBackend::X(x_display),
+         virtio::DisplayBackend::Stub,
+     ];
+ 
+@@ -847,12 +847,14 @@ fn create_gpu_device(
+         .collect::<Option<Vec<_>>>()
+         .ok_or_else(|| anyhow!("wayland socket path has no parent or file name"))?;
+ 
++    /*
+     if let Some(socket_path) = wayland_socket_path {
+         display_backends.insert(
+             0,
+             virtio::DisplayBackend::Wayland(Some(socket_path.to_owned())),
+         );
+     }
++    */
+ 
+     let dev = virtio::Gpu::new(
+         exit_evt.try_clone().context("failed to clone event")?,

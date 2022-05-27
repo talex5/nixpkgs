@@ -33,6 +33,7 @@ in
       ./rutabaga_gfx-don-t-clobber-PKG_CONFIG_PATH.patch
       ./fix-gui-jail.patch
       ./slow-fences.patch
+      ./no-gpu-window.patch
     ];
 
     cargoLock.lockFile = ./Cargo.lock;
