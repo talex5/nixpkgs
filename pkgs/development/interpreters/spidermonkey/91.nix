@@ -1,30 +1,33 @@
-{ lib, stdenv
+{ lib
+, stdenv
 , fetchurl
-, pkg-config
-, perl
-, python3
-, zip
+
+# build time
 , buildPackages
+, cargo
+, m4
+, perl
+, pkg-config
+, python3
+, rust-cbindgen
+, rustc
 , which
+, zip
+
+# runtime
+, icu
+, nspr
 , readline
 , zlib
-, icu69
-, cargo
-, rustc
-, rust-cbindgen
-, yasm
-, llvmPackages_latest
-, nspr
-, m4
 }:
 
 stdenv.mkDerivation rec {
   pname = "spidermonkey";
-  version = "91.7.0";
+  version = "91.9.1";
 
   src = fetchurl {
     url = "mirror://mozilla/firefox/releases/${version}esr/source/firefox-${version}esr.source.tar.xz";
-    sha512 = "925811989d8a91d826ba356bd46ac54be8153288ec0319c28d2bfbe89191e62e107691159dd7ca247253e2a4952eb59a5b9613e3feea3f5351238d4822e26301";
+    sha512 = "d432d559f2c5f4b0bc66a755db7d61585e24a727cd8d18630854b3fb8633d54baf61ed65b580345b13d52b66288aa15ca8ca5cfcde8231e88108241f0b007683";
   };
 
   outputs = [ "out" "dev" ];
@@ -32,20 +35,19 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [
     cargo
-    llvmPackages_latest.llvm # for llvm-objdump
+    m4
     perl
     pkg-config
     python3
     rust-cbindgen
     rustc
+    rustc.llvmPackages.llvm # for llvm-objdump
     which
-    yasm # to buid icu? seems weird
     zip
-    m4
   ];
 
   buildInputs = [
-    icu69
+    icu
     nspr
     readline
     zlib

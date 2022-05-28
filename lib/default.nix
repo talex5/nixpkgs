@@ -66,9 +66,10 @@ let
       stringLength sub substring tail trace;
     inherit (self.trivial) id const pipe concat or and bitAnd bitOr bitXor
       bitNot boolToString mergeAttrs flip mapNullable inNixShell isFloat min max
-      importJSON importTOML warn warnIf throwIfNot checkListOfEnum
+      importJSON importTOML warn warnIf warnIfNot throwIf throwIfNot checkListOfEnum
       info showWarnings nixpkgsVersion version isInOldestRelease
-      mod compare splitByAndCompare functionArgs setFunctionArgs isFunction
+      mod compare splitByAndCompare
+      functionArgs setFunctionArgs isFunction toFunction
       toHexString toBaseDigits;
     inherit (self.fixedPoints) fix fix' converge extends composeExtensions
       composeManyExtensions makeExtensible makeExtensibleWithCustomName;
@@ -93,7 +94,8 @@ let
       concatImapStringsSep makeSearchPath makeSearchPathOutput
       makeLibraryPath makeBinPath optionalString
       hasInfix hasPrefix hasSuffix stringToCharacters stringAsChars escape
-      escapeShellArg escapeShellArgs escapeRegex escapeXML replaceChars lowerChars
+      escapeShellArg escapeShellArgs isValidPosixName toShellVar toShellVars
+      escapeRegex escapeXML replaceChars lowerChars
       upperChars toLower toUpper addContextFrom splitString
       removePrefix removeSuffix versionOlder versionAtLeast
       getName getVersion
@@ -107,13 +109,13 @@ let
       makeScope makeScopeWithSplicing;
     inherit (self.meta) addMetaAttrs dontDistribute setName updateName
       appendToName mapDerivationAttrset setPrio lowPrio lowPrioSet hiPrio
-      hiPrioSet getLicenseFromSpdxId;
+      hiPrioSet getLicenseFromSpdxId getExe;
     inherit (self.sources) pathType pathIsDirectory cleanSourceFilter
       cleanSource sourceByRegex sourceFilesBySuffices
       commitIdFromGitRepo cleanSourceWith pathHasContext
       canCleanSource pathIsRegularFile pathIsGitRepo;
     inherit (self.modules) evalModules setDefaultModuleLocation
-      unifyModuleSyntax applyIfFunction mergeModules
+      unifyModuleSyntax applyModuleArgsIfFunction mergeModules
       mergeModules' mergeOptionDecls evalOptionValue mergeDefinitions
       pushDownProperties dischargeProperties filterOverrides
       sortProperties fixupOptionType mkIf mkAssert mkMerge mkOverride

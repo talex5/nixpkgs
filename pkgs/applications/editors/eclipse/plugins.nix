@@ -248,12 +248,12 @@ rec {
   cdt = buildEclipseUpdateSite rec {
     name = "cdt-${version}";
     # find current version at https://www.eclipse.org/cdt/downloads.php
-    version = "10.5.0";
+    version = "10.6.0";
 
     src = fetchzip {
       stripRoot = false;
       url = "https://www.eclipse.org/downloads/download.php?r=1&nf=1&file=/tools/cdt/releases/${lib.versions.majorMinor version}/${name}/${name}.zip";
-      hash = "sha256-0sf38Ekw9mMjiEmJDcunVL3VS3KqWVXKZlQIGBk4V4g=";
+      hash = "sha256-eMvZ2UvPpUq1J4DDg6f+R1g217bnRjxmr5zWUAhef/c=";
     };
 
     meta = with lib; {
@@ -345,7 +345,7 @@ rec {
     src = fetchzip {
       url = "https://download.jboss.org/drools/release/${version}/droolsjbpm-tools-distribution-${version}.zip";
       sha512 = "2qzc1iszqfrfnw8xip78n3kp6hlwrvrr708vlmdk7nv525xhs0ssjaxriqdhcr0s6jripmmazxivv3763rnk2bfkh31hmbnckpx4r3m";
-      extraPostFetch = ''
+      postFetch = ''
         # update site is a couple levels deep, alongside some other irrelevant stuff
         cd $out;
         find . -type f -not -path ./binaries/org.drools.updatesite/\* -exec rm {} \;
@@ -507,7 +507,7 @@ rec {
       stripRoot = false;
       url = "https://github.com/${owner}/${repo}/archive/${rev}.zip";
       sha256 = "1xfj4j27d1h4bdf2v7f78zi8lz4zkkj7s9kskmsqx5jcs2d459yp";
-      extraPostFetch =
+      postFetch =
         ''
           mv "$out/${repo}-${rev}/releases/local-repo/"* "$out/"
         '';

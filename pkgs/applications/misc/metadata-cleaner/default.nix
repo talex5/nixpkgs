@@ -13,12 +13,12 @@
 , ninja
 , pkg-config
 , poppler_gi
-, wrapGAppsHook
+, wrapGAppsHook4
 }:
 
 python3.pkgs.buildPythonApplication rec {
   pname = "metadata-cleaner";
-  version = "2.1.5";
+  version = "2.2.2";
 
   format = "other";
 
@@ -26,7 +26,7 @@ python3.pkgs.buildPythonApplication rec {
     owner = "rmnvgr";
     repo = "metadata-cleaner";
     rev = "v${version}";
-    hash = "sha256-G7Azeh8+OQILoYEmlIeacoDzN0NRt5NTGavYM9CH8WA=";
+    hash = "sha256-V3qcQQwc2ykVTVgUJuNnVQ9iSPD0tv4C2hSILLxuE70=";
   };
 
   nativeBuildInputs = [
@@ -38,7 +38,7 @@ python3.pkgs.buildPythonApplication rec {
     meson
     ninja
     pkg-config
-    wrapGAppsHook
+    wrapGAppsHook4
   ];
 
   buildInputs = [

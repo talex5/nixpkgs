@@ -16,7 +16,7 @@ let
       "LimitNOFILE" "LimitAS" "LimitNPROC" "LimitMEMLOCK" "LimitLOCKS"
       "LimitSIGPENDING" "LimitMSGQUEUE" "LimitNICE" "LimitRTPRIO" "LimitRTTIME"
       "OOMScoreAdjust" "CPUAffinity" "Hostname" "ResolvConf" "Timezone"
-      "LinkJournal"
+      "LinkJournal" "Ephemeral" "AmbientCapability"
     ])
     (assertValueOneOf "Boot" boolValues)
     (assertValueOneOf "ProcessTwo" boolValues)
@@ -26,11 +26,13 @@ let
   checkFiles = checkUnitConfig "Files" [
     (assertOnlyFields [
       "ReadOnly" "Volatile" "Bind" "BindReadOnly" "TemporaryFileSystem"
-      "Overlay" "OverlayReadOnly" "PrivateUsersChown"
+      "Overlay" "OverlayReadOnly" "PrivateUsersChown" "BindUser"
+      "Inaccessible" "PrivateUserOwnership"
     ])
     (assertValueOneOf "ReadOnly" boolValues)
     (assertValueOneOf "Volatile" (boolValues ++ [ "state" ]))
     (assertValueOneOf "PrivateUsersChown" boolValues)
+    (assertValueOneOf "PrivateUserOwnership" [ "off" "chown" "map" "auto" ])
   ];
 
   checkNetwork = checkUnitConfig "Network" [
@@ -116,7 +118,13 @@ in {
     in
       mkMerge [
         (mkIf (cfg != {}) {
-          environment.etc."systemd/nspawn".source = mkIf (cfg != {}) (generateUnits' false "nspawn" units [] []);
+          environment.etc."systemd/nspawn".source = mkIf (cfg != {}) (generateUnits {
+            allowCollisions = false;
+            type = "nspawn";
+            inherit units;
+            upstreamUnits = [];
+            upstreamWants = [];
+          });
         })
         {
           systemd.targets.multi-user.wants = [ "machines.target" ];

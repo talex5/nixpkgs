@@ -22,6 +22,10 @@
 , waylandSupport ? stdenv.isLinux && !stdenv.hostPlatform.isAndroid
 , wayland
 , wayland-protocols
+, wayland-scanner
+, drmSupport ? stdenv.isLinux && !stdenv.hostPlatform.isAndroid
+, libdrm
+, mesa
 , libxkbcommon
 , dbusSupport ? stdenv.isLinux && !stdenv.hostPlatform.isAndroid
 , dbus
@@ -65,9 +69,26 @@ stdenv.mkDerivation rec {
   outputs = [ "out" "dev" ];
   outputBin = "dev"; # sdl-config
 
+  patches = [
+    # `sdl2-config --cflags` from Nixpkgs returns include path to just SDL2.
+    # On a normal distro this is enough for includes from all SDL2* packages to work,
+    # but on NixOS they're spread across different paths.
+    # This patch + the setup-hook will ensure that `sdl2-config --cflags` works correctly.
+    ./find-headers.patch
+  ];
+
+  postPatch = ''
+    # Fix running wayland-scanner for the build platform when cross-compiling.
+    # See comment here: https://github.com/libsdl-org/SDL/issues/4860#issuecomment-1119003545
+    substituteInPlace configure \
+      --replace '$(WAYLAND_SCANNER)' 'wayland-scanner'
+  '';
+
+  strictDeps = true;
+
   depsBuildBuild = [ pkg-config ];
 
-  nativeBuildInputs = [ pkg-config ] ++ optionals waylandSupport [ wayland ];
+  nativeBuildInputs = [ pkg-config ] ++ optionals waylandSupport [ wayland wayland-scanner ];
 
   propagatedBuildInputs = dlopenPropagatedBuildInputs;
 
@@ -84,7 +105,8 @@ stdenv.mkDerivation rec {
     ++ optional pulseaudioSupport libpulseaudio
     ++ optional udevSupport udev
     ++ optionals waylandSupport [ wayland wayland-protocols libxkbcommon ]
-    ++ optionals x11Support [ libICE libXi libXScrnSaver libXcursor libXinerama libXext libXrandr libXxf86vm ];
+    ++ optionals x11Support [ libICE libXi libXScrnSaver libXcursor libXinerama libXext libXrandr libXxf86vm ]
+    ++ optionals drmSupport [ libdrm mesa ];
 
   buildInputs = [ libiconv ]
     ++ dlopenBuildInputs

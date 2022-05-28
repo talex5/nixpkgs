@@ -7,6 +7,7 @@
 # This will cause c_rehash to refer to perl via the environment, but otherwise
 # will produce a perfectly functional openssl binary and library.
 , withPerl ? stdenv.hostPlatform == stdenv.buildPlatform
+, removeReferencesTo
 }:
 
 # Note: this package is used for bootstrapping fetchurl, and thus
@@ -69,6 +70,12 @@ let
         x86_64-linux = "./Configure linux-x86_64";
         x86_64-solaris = "./Configure solaris64-x86_64-gcc";
         riscv64-linux = "./Configure linux64-riscv64";
+        mips64el-linux =
+          if stdenv.hostPlatform.isMips64n64
+          then "./Configure linux64-mips64"
+          else if stdenv.hostPlatform.isMips64n32
+          then "./Configure linux-mips64"
+          else throw "unsupported ABI for ${stdenv.hostPlatform.system}";
       }.${stdenv.hostPlatform.system} or (
         if stdenv.hostPlatform == stdenv.buildPlatform
           then "./config"
@@ -106,7 +113,11 @@ let
       # OpenSSL needs a specific `no-shared` configure flag.
       # See https://wiki.openssl.org/index.php/Compilation_and_Installation#Configure_Options
       # for a comprehensive list of configuration options.
-      ++ lib.optional (lib.versionAtLeast version "1.1.0" && static) "no-shared";
+      ++ lib.optional (lib.versionAtLeast version "1.1.0" && static) "no-shared"
+      # This introduces a reference to the CTLOG_FILE which is undesired when
+      # trying to build binaries statically.
+      ++ lib.optional static "no-ct"
+      ;
 
     makeFlags = [
       "MANDIR=$(man)/share/man"
@@ -120,13 +131,16 @@ let
     enableParallelBuilding = true;
 
     postInstall =
-    lib.optionalString (!static) ''
+    (if static then ''
+      # OPENSSLDIR has a reference to self
+      ${removeReferencesTo}/bin/remove-references-to -t $out $out/lib/*.a
+    '' else ''
       # If we're building dynamic libraries, then don't install static
       # libraries.
       if [ -n "$(echo $out/lib/*.so $out/lib/*.dylib $out/lib/*.dll)" ]; then
           rm "$out/lib/"*.a
       fi
-    '' + lib.optionalString (!stdenv.hostPlatform.isWindows)
+    '') + lib.optionalString (!stdenv.hostPlatform.isWindows)
       # Fix bin/c_rehash's perl interpreter line
       #
       # - openssl 1_0_2: embeds a reference to buildPackages.perl
@@ -170,24 +184,10 @@ let
 
 in {
 
-  openssl_1_0_2 = common {
-    version = "1.0.2u";
-    sha256 = "ecd0c6ffb493dd06707d38b14bb4d8c2288bb7033735606569d8f90f89669d16";
-    patches = [
-      ./1.0.2/nix-ssl-cert-file.patch
-
-      (if stdenv.hostPlatform.isDarwin
-       then ./1.0.2/use-etc-ssl-certs-darwin.patch
-       else ./1.0.2/use-etc-ssl-certs.patch)
-    ] ++ lib.optionals (stdenv.hostPlatform.system == "aarch64-darwin") [
-      ./1.0.2/darwin64-arm64.patch
-    ];
-    extraMeta.knownVulnerabilities = [ "Support for OpenSSL 1.0.2 ended with 2019." ];
-  };
 
   openssl_1_1 = common rec {
-    version = "1.1.1n";
-    sha256 = "sha256-QNzrUaT2pSdb3g5r8g70uRv8Mu1XwFUuLo4VRjNysXo=";
+    version = "1.1.1o";
+    sha256 = "sha256-k4SisFcN2ANYhBRkZ3EV33he25QccSEfdQdtcv5rQ48=";
     patches = [
       ./1.1/nix-ssl-cert-file.patch
 
@@ -201,8 +201,8 @@ in {
   };
 
   openssl_3_0 = common {
-    version = "3.0.2";
-    sha256 = "sha256-mOkczq1NR1auPJzeXgkZGo5YbZ9NUIOOfsCdZBHf22M=";
+    version = "3.0.3";
+    sha256 = "sha256-7gB4rc7x3l8APGLIDMllJ3IWCcbzu0K3eV3zH4tVjAs=";
     patches = [
       ./3.0/nix-ssl-cert-file.patch
 

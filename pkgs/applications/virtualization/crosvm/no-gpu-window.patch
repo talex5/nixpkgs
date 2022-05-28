@@ -1,8 +1,8 @@
-diff --git a/src/linux.rs b/src/linux.rs
-index 7ba0df62..eb058382 100644
---- a/src/linux.rs
-+++ b/src/linux.rs
-@@ -836,7 +836,7 @@ fn create_gpu_device(
+diff --git a/src/linux/gpu.rs b/src/linux/gpu.rs
+index 3edd965b..ae4531eb 100644
+--- a/src/linux/gpu.rs
++++ b/src/linux/gpu.rs
+@@ -165,7 +165,7 @@ pub fn create_gpu_device(
      map_request: Arc<Mutex<Option<ExternalMapping>>>,
  ) -> DeviceResult {
      let mut display_backends = vec![
@@ -11,7 +11,7 @@ index 7ba0df62..eb058382 100644
          virtio::DisplayBackend::Stub,
      ];
  
-@@ -847,12 +847,14 @@ fn create_gpu_device(
+@@ -176,12 +176,14 @@ pub fn create_gpu_device(
          .collect::<Option<Vec<_>>>()
          .ok_or_else(|| anyhow!("wayland socket path has no parent or file name"))?;
  

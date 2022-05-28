@@ -27,7 +27,7 @@
 
 buildPythonPackage rec {
   pname = "ocrmypdf";
-  version = "13.4.1";
+  version = "13.4.4";
 
   src = fetchFromGitHub {
     owner = "jbarlow83";
@@ -36,10 +36,10 @@ buildPythonPackage rec {
     # The content of .git_archival.txt is substituted upon tarball creation,
     # which creates indeterminism if master no longer points to the tag.
     # See https://github.com/jbarlow83/OCRmyPDF/issues/841
-    extraPostFetch = ''
+    postFetch = ''
       rm "$out/.git_archival.txt"
     '';
-    sha256 = "sha256-gxgeEwm3cYNllcmRTZhdyIWWGKXTewyVW314k732swE=";
+    hash = "sha256-uFKnohUxh17h6u0vwVB7EaTEh5NRowP8a6za63Ehodk=";
   };
 
   SETUPTOOLS_SCM_PRETEND_VERSION = version;
@@ -79,6 +79,12 @@ buildPythonPackage rec {
     pytest-xdist
     pytestCheckHook
   ];
+
+  postPatch = ''
+    # https://github.com/ocrmypdf/OCRmyPDF/issues/933
+    substituteInPlace setup.cfg \
+      --replace "pdfminer.six!=20200720,>=20191110,<=20220319" "pdfminer.six!=20200720,>=20191110"
+  '';
 
   pythonImportsCheck = [
     "ocrmypdf"

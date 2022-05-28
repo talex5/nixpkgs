@@ -2,14 +2,14 @@
 
 nimPackages.buildNimPackage rec {
   pname = "nitter";
-  version = "unstable-2022-02-11";
+  version = "unstable-2022-05-13";
   nimBinOnly = true;
 
   src = fetchFromGitHub {
     owner = "zedeus";
     repo = "nitter";
-    rev = "6695784050605c77a301c0a66764fa9a9580a2f5";
-    sha256 = "1lddzf6m74bw5kkv465cp211xxqbwnfacav7ia3y9i38rrnqwk6m";
+    rev = "683c052036b268028f0ecae020a1519bc586516d";
+    sha256 = "179z66jlwbdarrgvpdh8aqy2ihkiakd22wqydrfgpsgr59ma8fgl";
   };
 
   buildInputs = with nimPackages; [
@@ -29,6 +29,7 @@ nimPackages.buildNimPackage rec {
 
   postBuild = ''
     nim c --hint[Processing]:off -r tools/gencss
+    nim c --hint[Processing]:off -r tools/rendermd
   '';
 
   postInstall = ''

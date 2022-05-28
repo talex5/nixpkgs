@@ -17,8 +17,8 @@ let
   gitalySocket = "${cfg.statePath}/tmp/sockets/gitaly.socket";
   pathUrlQuote = url: replaceStrings ["/"] ["%2F"] url;
 
-  databaseConfig = {
-    production = {
+  databaseConfig = let
+    val = {
       adapter = "postgresql";
       database = cfg.databaseName;
       host = cfg.databaseHost;
@@ -26,6 +26,10 @@ let
       encoding = "utf8";
       pool = cfg.databasePool;
     } // cfg.extraDatabaseConfig;
+  in if lib.versionAtLeast (lib.getVersion cfg.packages.gitlab) "15.0" then {
+    production.main = val;
+  } else {
+    production = val;
   };
 
   # We only want to create a database if we're actually going to connect to it.
@@ -179,7 +183,7 @@ let
           ${concatStrings (mapAttrsToList (name: value: "--set ${name} '${value}' ") gitlabEnv)} \
           --set PATH '${lib.makeBinPath [ pkgs.nodejs pkgs.gzip pkgs.git pkgs.gnutar postgresqlPackage pkgs.coreutils pkgs.procps ]}:$PATH' \
           --set RAKEOPT '-f ${cfg.packages.gitlab}/share/gitlab/Rakefile' \
-          --run 'cd ${cfg.packages.gitlab}/share/gitlab'
+          --chdir '${cfg.packages.gitlab}/share/gitlab'
      '';
   };
 
@@ -193,7 +197,7 @@ let
       makeWrapper ${cfg.packages.gitlab.rubyEnv}/bin/rails $out/bin/gitlab-rails \
           ${concatStrings (mapAttrsToList (name: value: "--set ${name} '${value}' ") gitlabEnv)} \
           --set PATH '${lib.makeBinPath [ pkgs.nodejs pkgs.gzip pkgs.git pkgs.gnutar postgresqlPackage pkgs.coreutils pkgs.procps ]}:$PATH' \
-          --run 'cd ${cfg.packages.gitlab}/share/gitlab'
+          --chdir '${cfg.packages.gitlab}/share/gitlab'
      '';
   };
 
@@ -848,10 +852,7 @@ in {
 
         extraConfig = mkOption {
           type = types.lines;
-          default = ''
-            copytruncate
-            compress
-          '';
+          default = "";
           description = ''
             Extra logrotate config options for this path. Refer to
             <link xlink:href="https://linux.die.net/man/8/logrotate"/> for details.
@@ -977,13 +978,14 @@ in {
     # Enable rotation of log files
     services.logrotate = {
       enable = cfg.logrotate.enable;
-      paths = {
+      settings = {
         gitlab = {
-          path = "${cfg.statePath}/log/*.log";
-          user = cfg.user;
-          group = cfg.group;
+          files = "${cfg.statePath}/log/*.log";
+          su = "${cfg.user} ${cfg.group}";
           frequency = cfg.logrotate.frequency;
-          keep = cfg.logrotate.keep;
+          rotate = cfg.logrotate.keep;
+          copytruncate = true;
+          compress = true;
           extraConfig = cfg.logrotate.extraConfig;
         };
       };
@@ -1186,7 +1188,7 @@ in {
                 fi
 
                 jq <${pkgs.writeText "database.yml" (builtins.toJSON databaseConfig)} \
-                   '.production.password = $ENV.db_password' \
+                   '.${if lib.versionAtLeast (lib.getVersion cfg.packages.gitlab) "15.0" then "production.main" else "production"}.password = $ENV.db_password' \
                    >'${cfg.statePath}/config/database.yml'
               ''
               else ''

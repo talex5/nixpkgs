@@ -2,19 +2,19 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "cloud-hypervisor";
-  version = "22.1";
+  version = "23.1";
 
   src = fetchFromGitHub {
     owner = "cloud-hypervisor";
     repo = pname;
     rev = "v${version}";
-    sha256 = "sha256-KWCGcGB4HCpV7uSM4otQhSGEzQ+1jQip2fiAysNN54k=";
+    sha256 = "sha256-Pyocmj5cr2vOfeyRG3mBU11I3iXndUh3VifRSlnjoE8=";
   };
 
   nativeBuildInputs = [ pkg-config ];
   buildInputs = [ openssl ] ++ lib.optional stdenv.isAarch64 dtc;
 
-  cargoSha256 = "sha256-R70H1R9jFnQyOLI4UNuRzpOAAnGSBGpiHFKbxP2472o=";
+  cargoSha256 = "1rx4d38d0ajdq3qs638gmagmj3f9j29i5mhrrzw039mggahjbksw";
 
   OPENSSL_NO_VENDOR = true;
 

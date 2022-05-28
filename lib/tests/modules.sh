@@ -290,10 +290,12 @@ checkConfigOutput '^"a b"$' config.result ./functionTo/merging-list.nix
 checkConfigError 'A definition for option .fun.\[function body\]. is not of type .string.. Definition values:\n\s*- In .*wrong-type.nix' config.result ./functionTo/wrong-type.nix
 checkConfigOutput '^"b a"$' config.result ./functionTo/list-order.nix
 checkConfigOutput '^"a c"$' config.result ./functionTo/merging-attrs.nix
+checkConfigOutput '^"a bee"$' config.result ./functionTo/submodule-options.nix
+checkConfigOutput '^"fun.\[function body\].a fun.\[function body\].b"$' config.optionsResult ./functionTo/submodule-options.nix
 
 # moduleType
 checkConfigOutput '^"a b"$' config.resultFoo ./declare-variants.nix ./define-variant.nix
-checkConfigOutput '^"a y z"$' config.resultFooBar ./declare-variants.nix ./define-variant.nix
+checkConfigOutput '^"a b y z"$' config.resultFooBar ./declare-variants.nix ./define-variant.nix
 checkConfigOutput '^"a b c"$' config.resultFooFoo ./declare-variants.nix ./define-variant.nix
 
 ## emptyValue's
@@ -313,7 +315,7 @@ checkConfigOutput "bar" config.priorities ./raw.nix
 
 ## Option collision
 checkConfigError \
-  'The option .set. in module .*/declare-set.nix. would be a parent of the following options, but its type .attribute set of signed integers. does not support nested options.\n\s*- option[(]s[)] with prefix .set.enable. in module .*/declare-enable-nested.nix.' \
+  'The option .set. in module .*/declare-set.nix. would be a parent of the following options, but its type .attribute set of signed integer. does not support nested options.\n\s*- option[(]s[)] with prefix .set.enable. in module .*/declare-enable-nested.nix.' \
   config.set \
   ./declare-set.nix ./declare-enable-nested.nix
 
@@ -326,6 +328,10 @@ checkConfigError 'The option .theOption.nested. in .other.nix. is already declar
 
 # Test that types.optionType leaves types untouched as long as they don't need to be merged
 checkConfigOutput 'ok' config.freeformItems.foo.bar ./adhoc-freeformType-survives-type-merge.nix
+
+# Anonymous submodules don't get nixed by import resolution/deduplication
+# because of an `extendModules` bug, issue 168767.
+checkConfigOutput '^1$' config.sub.specialisation.value ./extendModules-168767-imports.nix
 
 cat <<EOF
 ====== module tests ======

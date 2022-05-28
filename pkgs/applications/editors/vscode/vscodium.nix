@@ -7,31 +7,28 @@ let
     x86_64-linux = "linux-x64";
     x86_64-darwin = "darwin-x64";
     aarch64-linux = "linux-arm64";
+    aarch64-darwin = "darwin-arm64";
     armv7l-linux = "linux-armhf";
   }.${system};
 
-  archive_fmt = if system == "x86_64-darwin" then "zip" else "tar.gz";
+  archive_fmt = if stdenv.isDarwin then "zip" else "tar.gz";
 
   sha256 = {
-    x86_64-linux = "1sh2f7hwhilwmlgy11kl0s2n3phpcir15wyl2fkyhsr2kdj4jz9r";
-    x86_64-darwin = "1s04d91f08982wi8hb4dw0j57d6zqrdgns16ihrgsvahrzksgq4b";
-    aarch64-linux = "1a97lk1qz2lz0lk5lpja32zy07iwdbskp6baf429iz7fz232rshm";
-    armv7l-linux = "0vjqxqcr7fq3ncx1nl6ny7qcqm4vlsn33c074hhcg5292blg2a0p";
+    x86_64-linux = "1ns4cpkihbrwgh8pvn1kjlnipssinjkxy28szidnz6q71zyvsjyw";
+    x86_64-darwin = "05v0gxal74igc29qjy0ficlyna17bzh1lpfqvyxdpg22is894h2l";
+    aarch64-linux = "1x6lhcvdly3a2n0shp2vlgk3s2pj9byxn9dc9pjg4k5ff24dql7l";
+    aarch64-darwin = "03knkj0y6n45lin0v6288zbq1nz5qh81ijyw1w3zrpd7pijn9j0x";
+    armv7l-linux = "0iwlr5q1qwq3jgldrhz4bbyl3xmdhd4ss690x1lqb4vxm2m7v5jw";
   }.${system};
 
-  sourceRoot = {
-    x86_64-linux = ".";
-    x86_64-darwin = "";
-    aarch64-linux = ".";
-    armv7l-linux = ".";
-  }.${system};
+  sourceRoot = if stdenv.isDarwin then "" else ".";
 in
   callPackage ./generic.nix rec {
     inherit sourceRoot;
 
     # Please backport all compatible updates to the stable release.
     # This is important for the extension ecosystem.
-    version = "1.65.2";
+    version = "1.67.2";
     pname = "vscodium";
 
     executableName = "codium";
@@ -63,6 +60,7 @@ in
       downloadPage = "https://github.com/VSCodium/vscodium/releases";
       license = licenses.mit;
       maintainers = with maintainers; [ synthetica turion bobby285271 ];
-      platforms = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "armv7l-linux" ];
+      mainProgram = "codium";
+      platforms = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" "armv7l-linux" ];
     };
   }

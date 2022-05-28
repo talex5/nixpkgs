@@ -1,8 +1,9 @@
 { stdenv, lib, buildPythonPackage, fetchPypi, makeWrapper, isPy3k
-, python, twisted, jinja2, zope_interface, sqlalchemy, alembic, python-dateutil
-, txaio, autobahn, pyjwt, pyyaml, unidiff, treq, txrequests, pypugjs, boto3
-, moto, mock, lz4, setuptoolsTrial, isort, pylint, flake8, buildbot-worker
-, buildbot-pkg, buildbot-plugins, parameterized, git, openssh, glibcLocales
+, python, twisted, jinja2, msgpack, zope_interface, sqlalchemy, alembic
+, python-dateutil, txaio, autobahn, pyjwt, pyyaml, treq, txrequests, pypugjs
+, boto3, moto, mock, lz4, setuptoolsTrial, isort, pylint, flake8
+, buildbot-worker, buildbot-pkg, buildbot-plugins, parameterized, git, openssh
+, glibcLocales
 , nixosTests
 }:
 
@@ -31,17 +32,18 @@ let
 
   package = buildPythonPackage rec {
     pname = "buildbot";
-    version = "3.4.1";
+    version = "3.5.0";
 
     src = fetchPypi {
       inherit pname version;
-      sha256 = "sha256-GmKMqejHjtEiEtlZffze7PGNjVwUKB/ZcvUgJ4DoeDQ=";
+      sha256 = "sha256-woGHdCan5qTp00toNkWa821EgVQMrPK+OWXoqFcgIDQ=";
     };
 
     propagatedBuildInputs = [
       # core
       twisted
       jinja2
+      msgpack
       zope_interface
       sqlalchemy
       alembic
@@ -50,10 +52,9 @@ let
       autobahn
       pyjwt
       pyyaml
-      unidiff
     ]
       # tls
-      ++ twisted.extras.tls;
+      ++ twisted.optional-dependencies.tls;
 
     checkInputs = [
       treq
@@ -92,6 +93,9 @@ let
     preCheck = ''
       export LC_ALL="en_US.UTF-8"
       export PATH="$out/bin:$PATH"
+
+      # remove testfile which is missing configuration file from sdist
+      rm buildbot/test/integration/test_graphql.py
     '';
 
     disabled = !isPy3k;

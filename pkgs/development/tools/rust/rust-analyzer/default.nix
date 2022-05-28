@@ -1,5 +1,6 @@
 { lib
 , stdenv
+, callPackage
 , fetchFromGitHub
 , rustPlatform
 , CoreServices
@@ -11,14 +12,14 @@
 
 rustPlatform.buildRustPackage rec {
   pname = "rust-analyzer-unwrapped";
-  version = "2022-03-07";
-  cargoSha256 = "sha256-geMzdo5frW5VkuTwBHKHXCTJZrHDUIRSTs2kkCfA5Vc=";
+  version = "2022-05-17";
+  cargoSha256 = "sha256-H0nuS56mvo5YUAUOsEnR4Cv3iFKixoHK83BcM1PFMA8=";
 
   src = fetchFromGitHub {
-    owner = "rust-analyzer";
+    owner = "rust-lang";
     repo = "rust-analyzer";
     rev = version;
-    sha256 = "sha256-/qKh4utesAjlyG8A3hEmSx+HBgh48Uje6ZRtUGz5f0g=";
+    sha256 = "sha256-vrVpgQYUuJPgK1NMb1nxlCdxjoYo40YkUbZpH2Z2mwM=";
   };
 
   patches = [
@@ -54,12 +55,17 @@ rustPlatform.buildRustPackage rec {
     runHook postInstallCheck
   '';
 
-  passthru.updateScript = ./update.sh;
+  passthru = {
+    updateScript = ./update.sh;
+    # FIXME: Pass overrided `rust-analyzer` once `buildRustPackage` also implements #119942
+    tests.neovim-lsp = callPackage ./test-neovim-lsp.nix { };
+  };
 
   meta = with lib; {
     description = "A modular compiler frontend for the Rust language";
     homepage = "https://rust-analyzer.github.io";
     license = with licenses; [ mit asl20 ];
     maintainers = with maintainers; [ oxalica ];
+    mainProgram = "rust-analyzer";
   };
 }

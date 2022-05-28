@@ -28,18 +28,27 @@ buildPythonPackage rec {
   };
 
   propagatedBuildInputs = [
-    aiofiles
     cryptography
-    libusb1
     pyasn1
     rsa
   ];
+
+  passthru.optional-dependencies = {
+    async = [
+      aiofiles
+    ];
+    usb = [
+      libusb1
+    ];
+  };
 
   checkInputs = [
     mock
     pycryptodome
     pytestCheckHook
-  ];
+  ]
+  ++ passthru.optional-dependencies.async
+  ++ passthru.optional-dependencies.usb;
 
   disabledTests = lib.optionals (pythonAtLeast "3.10") [
     # Tests are failing with Python 3.10

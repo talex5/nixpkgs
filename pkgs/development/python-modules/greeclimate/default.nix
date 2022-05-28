@@ -10,7 +10,7 @@
 
 buildPythonPackage rec {
   pname = "greeclimate";
-  version = "1.1.0";
+  version = "1.2.0";
   format = "setuptools";
 
   disabled = pythonOlder "3.6";
@@ -18,8 +18,8 @@ buildPythonPackage rec {
   src = fetchFromGitHub {
     owner = "cmroche";
     repo = "greeclimate";
-    rev = "v${version}";
-    hash = "sha256-KVrm99aP2Nq15pDa8zaYIvTTcl6JEYU+7IkcMayHRQw=";
+    rev = "refs/tags/v${version}";
+    hash = "sha256-DRVCBbGj0NfQBn9qNRc0Gu3LNO6KDNF1/ZdSAuhCVsM=";
   };
 
   propagatedBuildInputs = [
@@ -43,6 +43,7 @@ buildPythonPackage rec {
   meta = with lib; {
     description = "Discover, connect and control Gree based minisplit systems";
     homepage = "https://github.com/cmroche/greeclimate";
+    changelog = "https://github.com/cmroche/greeclimate/blob/${src.rev}/CHANGELOG.md";
     license = licenses.gpl3Only;
     maintainers = with maintainers; [ dotlambda ];
   };

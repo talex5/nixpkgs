@@ -27,7 +27,7 @@ in
 
     locate = mkOption {
       type = package;
-      default = pkgs.findutils;
+      default = pkgs.findutils.locate;
       defaultText = literalExpression "pkgs.findutils";
       example = literalExpression "pkgs.mlocate";
       description = ''
@@ -250,7 +250,7 @@ in
     };
 
     warnings = optional (isMorPLocate && cfg.localuser != null)
-      "mlocate does not support the services.locate.localuser option; updatedb will run as root. (Silence with services.locate.localuser = null.)"
+      "mlocate and plocate do not support the services.locate.localuser option. updatedb will run as root. Silence this warning by setting services.locate.localuser = null."
     ++ optional (isFindutils && cfg.pruneNames != [ ])
       "findutils locate does not support pruning by directory component"
     ++ optional (isFindutils && cfg.pruneBindMounts)

@@ -1,14 +1,14 @@
-{ lib, stdenv, fetchFromGitHub, openssl, libsamplerate, alsa-lib, AppKit }:
+{ lib, stdenv, fetchFromGitHub, openssl, libsamplerate, alsa-lib, AppKit, fetchpatch }:
 
 stdenv.mkDerivation rec {
   pname = "pjsip";
-  version = "2.12";
+  version = "2.12.1";
 
   src = fetchFromGitHub {
     owner = pname;
     repo = "pjproject";
     rev = version;
-    sha256 = "sha256-snp9+PlffU9Ay8o42PM8SqyP60hu9nozp457HM+0bM8=";
+    sha256 = "sha256-HIDL4xzzTu3irzrIOf8qSNCAvHGOMpi8EDeqZb8mMnc=";
   };
 
   patches = [
@@ -38,6 +38,7 @@ stdenv.mkDerivation rec {
     homepage = "https://pjsip.org/";
     license = licenses.gpl2Plus;
     maintainers = with maintainers; [ olynch ];
+    mainProgram = "pjsua";
     platforms = platforms.linux ++ platforms.darwin;
   };
 }

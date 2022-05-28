@@ -46,8 +46,23 @@ let
       aiohomekit = super.aiohomekit.overridePythonAttrs (oldAttrs: {
         doCheck = false; # requires aiohttp>=1.0.0
       });
+      gcal-sync = super.gcal-sync.overridePythonAttrs (oldAttrs: {
+        doCheck = false; # requires aiohttp>=1.0.0
+      });
       hass-nabucasa = super.hass-nabucasa.overridePythonAttrs (oldAttrs: {
         doCheck = false; # requires aiohttp>=1.0.0
+      });
+      pydeconz = super.pydeconz.overridePythonAttrs (oldAttrs: {
+        doCheck = false; # requires pytest-aiohttp>=1.0.0
+      });
+      pynws = super.pynws.overridePythonAttrs (oldAttrs: {
+        doCheck = false; # requires pytest-aiohttp>=1.0.0
+      });
+      pytomorrowio = super.pytomorrowio.overridePythonAttrs (oldAttrs: {
+        doCheck = false; # requires pytest-aiohttp>=1.0.0
+      });
+      rtsp-to-webrtc = super.rtsp-to-webrtc.overridePythonAttrs (oldAttrs: {
+        doCheck = false; # requires pytest-aiohttp>=1.0.0
       });
       snitun = super.snitun.overridePythonAttrs (oldAttrs: {
         doCheck = false; # requires aiohttp>=1.0.0
@@ -106,7 +121,7 @@ let
         src = fetchFromGitHub {
           owner = "ManneW";
           repo = "vilfo-api-client-python";
-          rev = "v$version}";
+          rev = "v${version}";
           sha256 = "1gy5gpsg99rcm1cc3m30232za00r9i46sp74zpd12p3vzz1wyyqf";
         };
       });
@@ -164,7 +179,7 @@ let
   extraPackagesFile = writeText "home-assistant-packages" (lib.concatMapStringsSep "\n" (pkg: pkg.pname) extraBuildInputs);
 
   # Don't forget to run parse-requirements.py after updating
-  hassVersion = "2022.3.5";
+  hassVersion = "2022.5.5";
 
 in python.pkgs.buildPythonApplication rec {
   pname = "homeassistant";
@@ -182,7 +197,7 @@ in python.pkgs.buildPythonApplication rec {
     owner = "home-assistant";
     repo = "core";
     rev = version;
-    hash = "sha256-VXE2zQH/HHhogo5qjneC0zlo9892wgGN1qd3ZFKfyqw=";
+    hash = "sha256-uVB3Yg3f0fNkq2rav7hmbJ9IAMg0UIrdMshJVgOharA=";
   };
 
   # leave this in, so users don't have to constantly update their downstream patch handling
@@ -202,8 +217,8 @@ in python.pkgs.buildPythonApplication rec {
       "bcrypt"
       "cryptography"
       "httpx"
+      "jinja2"
       "pip"
-      "PyJWT"
       "requests"
       "yarl"
     ];
@@ -267,9 +282,6 @@ in python.pkgs.buildPythonApplication rec {
     respx
     stdlib-list
     tqdm
-    # required by tests/pylint
-    astroid
-    pylint
     # required by tests/auth/mfa_modules
     pyotp
   ] ++ lib.concatMap (component: getPackages component python.pkgs) [
@@ -279,8 +291,6 @@ in python.pkgs.buildPythonApplication rec {
   ];
 
   pytestFlagsArray = [
-    # parallelize test run
-    "--numprocesses $NIX_BUILD_CORES"
     # assign tests grouped by file to workers
     "--dist loadfile"
     # retry racy tests that end in "RuntimeError: Event loop is closed"
@@ -295,6 +305,8 @@ in python.pkgs.buildPythonApplication rec {
   ];
 
   disabledTestPaths = [
+    # we don't care about code quality
+    "tests/pylint"
     # don't bulk test all components
     "tests/components"
     # pyotp since v2.4.0 complains about the short mock keys, hass pins v2.3.0
@@ -306,6 +318,8 @@ in python.pkgs.buildPythonApplication rec {
     "test_merge"
     # Tests are flaky
     "test_config_platform_valid"
+    # Test requires pylint>=2.13.0
+    "test_invalid_discovery_info"
   ];
 
   preCheck = ''
