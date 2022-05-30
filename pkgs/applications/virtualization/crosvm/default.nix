@@ -34,6 +34,7 @@ in
       ./fix-gui-jail.patch
       ./slow-fences.patch
       ./no-gpu-window.patch
+      ./fix-keymaps.patch
     ];
 
     cargoLock.lockFile = ./Cargo.lock;

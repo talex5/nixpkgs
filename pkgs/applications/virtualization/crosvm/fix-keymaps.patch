@@ -1,0 +1,56 @@
+commit d770b6884b2473aff9cd88e0c1f252ffafbc8d6f
+Author: Thomas Leonard <talex5@gmail.com>
+Date:   Mon May 30 09:03:23 2022 +0100
+
+    If mapping a GPU resource RW fails, try RO
+    
+    This is needed for Wayland keymaps.
+
+diff --git a/vm_control/src/lib.rs b/vm_control/src/lib.rs
+index 470c3773..01c21ea5 100644
+--- a/vm_control/src/lib.rs
++++ b/vm_control/src/lib.rs
+@@ -276,15 +276,20 @@ impl VmMemoryRequest {
+         use self::VmMemoryRequest::*;
+         match self {
+             RegisterMemory(ref shm) => {
+-                match register_memory(vm, sys_allocator, shm, shm.size() as usize, None) {
++                match register_memory(vm, sys_allocator, shm, shm.size() as usize, None, Protection::read_write ()) {
+                     Ok((pfn, slot)) => VmMemoryResponse::RegisterMemory { pfn, slot },
+                     Err(e) => VmMemoryResponse::Err(e),
+                 }
+             }
+             RegisterFdAtPciBarOffset(alloc, ref descriptor, size, offset) => {
+-                match register_memory(vm, sys_allocator, descriptor, size, Some((alloc, offset))) {
++                match register_memory(vm, sys_allocator, descriptor, size, Some((alloc, offset)), Protection::read_write ()) {
+                     Ok((pfn, slot)) => VmMemoryResponse::RegisterMemory { pfn, slot },
+-                    Err(e) => VmMemoryResponse::Err(e),
++                    Err(e) => {
++                        match register_memory(vm, sys_allocator, descriptor, size, Some((alloc, offset)), Protection::read ()) {
++                            Ok((pfn, slot)) => VmMemoryResponse::RegisterMemory { pfn, slot },
++                            Err(_) => VmMemoryResponse::Err(e)
++                        }
++                    }
+                 }
+             }
+             UnregisterMemory(slot) => match vm.remove_memory_region(slot) {
+@@ -383,6 +388,7 @@ impl VmMemoryRequest {
+                     &handle.os_handle,
+                     reqs.size as usize,
+                     None,
++                    Protection::read_write (),
+                 ) {
+                     Ok((pfn, slot)) => VmMemoryResponse::AllocateAndRegisterGpuMemory {
+                         // Safe because ownership is transferred to SafeDescriptor via
+@@ -904,9 +910,11 @@ fn register_memory(
+     descriptor: &dyn AsRawDescriptor,
+     size: usize,
+     pci_allocation: Option<(Alloc, u64)>,
++    protection: Protection,
+ ) -> Result<(u64, MemSlot)> {
+     let mmap = match MemoryMappingBuilder::new(size)
+         .from_descriptor(descriptor)
++        .protection(protection)
+         .build()
+     {
+         Ok(v) => v,
