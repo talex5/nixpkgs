@@ -1,0 +1,25 @@
+commit d99ba0db5e068982afec519813a8a11870c2682a
+Author: Thomas Leonard <talex5@gmail.com>
+Date:   Thu Jun 2 10:09:10 2022 +0100
+
+    Fix suspend/resume by disabling uring
+    
+    When the host resumes from suspend, uring fails with:
+    
+        [ERROR:devices/src/virtio/block/asynchronous.rs:792] An error with a uring source: URing::enter: Failed to enter io uring: 4
+    
+    Force the use of the older working system instead.
+
+diff --git a/common/cros_async/src/uring_executor.rs b/common/cros_async/src/uring_executor.rs
+index ea12480a..3b46b9de 100644
+--- a/common/cros_async/src/uring_executor.rs
++++ b/common/cros_async/src/uring_executor.rs
+@@ -171,7 +171,7 @@ static USE_URING: Lazy<bool> = Lazy::new(|| {
+ // Caches the result so that the check is only run once.
+ // Useful for falling back to the FD executor on pre-uring kernels.
+ pub(crate) fn use_uring() -> bool {
+-    *USE_URING
++    false   // It fails to resume from suspend correctly (reports EINTR)
+ }
+ 
+ pub struct RegisteredSource {

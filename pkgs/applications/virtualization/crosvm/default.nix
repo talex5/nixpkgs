@@ -35,6 +35,7 @@ in
       ./slow-fences.patch
       ./no-gpu-window.patch
       ./fix-keymaps.patch
+      ./fix-suspend.patch
     ];
 
     cargoLock.lockFile = ./Cargo.lock;
