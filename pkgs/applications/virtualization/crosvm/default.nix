@@ -36,6 +36,7 @@ in
       ./no-gpu-window.patch
       ./fix-keymaps.patch
       ./fix-suspend.patch
+      ./share-as-user.patch
     ];
 
     cargoLock.lockFile = ./Cargo.lock;

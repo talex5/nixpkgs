@@ -1,0 +1,57 @@
+commit 433b96b45a9a2318c33fcbf5e076fb55599582e8
+Author: Thomas Leonard <talex5@gmail.com>
+Date:   Fri Jun 3 18:06:05 2022 +0100
+
+    Make all shared files appear to be owned by user 1000
+    
+    Avoids needing to be root to access them in VMs.
+
+diff --git a/devices/src/virtio/fs/passthrough.rs b/devices/src/virtio/fs/passthrough.rs
+index 2e839107..58c13185 100644
+--- a/devices/src/virtio/fs/passthrough.rs
++++ b/devices/src/virtio/fs/passthrough.rs
+@@ -288,9 +288,12 @@ thread_local! {
+ }
+ 
+ fn set_creds(
+-    uid: libc::uid_t,
+-    gid: libc::gid_t,
++    _uid: libc::uid_t,
++    _gid: libc::gid_t,
+ ) -> io::Result<(Option<ScopedUid>, Option<ScopedGid>)> {
++    // We're in a jail and we can only use 0:0.
++    let uid = 0;
++    let gid = 0;
+     let olduid = THREAD_EUID.with(|uid| *uid);
+     let oldgid = THREAD_EGID.with(|gid| *gid);
+ 
+@@ -355,6 +358,11 @@ fn ebadf() -> io::Error {
+     io::Error::from_raw_os_error(libc::EBADF)
+ }
+ 
++fn fix_creds(mut x: libc::stat64) -> libc::stat64 {
++    x.st_uid = 1000;
++    x
++}
++
+ fn stat<F: AsRawDescriptor + ?Sized>(f: &F) -> io::Result<libc::stat64> {
+     let mut st = MaybeUninit::<libc::stat64>::zeroed();
+ 
+@@ -373,7 +381,7 @@ fn stat<F: AsRawDescriptor + ?Sized>(f: &F) -> io::Result<libc::stat64> {
+     })?;
+ 
+     // Safe because the kernel guarantees that the struct is now fully initialized.
+-    Ok(unsafe { st.assume_init() })
++    Ok(fix_creds(unsafe { st.assume_init() }))
+ }
+ 
+ fn statat<D: AsRawDescriptor>(dir: &D, name: &CStr) -> io::Result<libc::stat64> {
+@@ -391,7 +399,7 @@ fn statat<D: AsRawDescriptor>(dir: &D, name: &CStr) -> io::Result<libc::stat64>
+     })?;
+ 
+     // Safe because the kernel guarantees that the struct is now fully initialized.
+-    Ok(unsafe { st.assume_init() })
++    Ok(fix_creds(unsafe { st.assume_init() }))
+ }
+ 
+ /// The caching policy that the file system should report to the FUSE client. By default the FUSE
